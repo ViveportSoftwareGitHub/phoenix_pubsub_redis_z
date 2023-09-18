@@ -55,16 +55,21 @@ defmodule Phoenix.PubSub.RedisZ.RedisPublisher do
     bin_msg = :erlang.term_to_binary(redis_msg, compressed: compression_level)
 
     :poolboy.transaction(pool_name, fn worker_pid ->
-      case Redix.command(worker_pid, ["PUBLISH", topic, bin_msg], timeout: 600_000) do
-        {:ok, _} ->
-          :ok
+      try do
+          case Redix.command(worker_pid, ["PUBLISH", topic, bin_msg], timeout: 600_000) do
+            {:ok, _} ->
+              :ok
 
-        {:error, %Redix.ConnectionError{reason: :closed}} ->
-          Logger.error("failed to publish broadcast due to closed redis connection")
-          :ok
+            {:error, %Redix.ConnectionError{reason: :closed}} ->
+              Logger.error("failed to publish broadcast due to closed redis connection")
+              :ok
 
-        {:error, reason} ->
-          {:error, reason}
+            {:error, reason} ->
+              {:error, reason}
+          end
+      catch
+          e, r -> IO.inspect("poolboy transaction caught error: #{inspect(e)}, #{inspect(r)}")
+            :ok
       end
     end)
   end
