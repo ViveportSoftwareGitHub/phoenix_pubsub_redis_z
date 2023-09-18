@@ -55,7 +55,7 @@ defmodule Phoenix.PubSub.RedisZ.RedisPublisher do
     bin_msg = :erlang.term_to_binary(redis_msg, compressed: compression_level)
 
     :poolboy.transaction(pool_name, fn worker_pid ->
-      case Redix.command(worker_pid, ["PUBLISH", topic, bin_msg]) do
+      case Redix.command(worker_pid, ["PUBLISH", topic, bin_msg], timeout: 600_000) do
         {:ok, _} ->
           :ok
 
