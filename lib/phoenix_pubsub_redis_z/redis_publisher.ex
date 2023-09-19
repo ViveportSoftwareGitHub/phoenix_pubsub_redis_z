@@ -56,7 +56,7 @@ defmodule Phoenix.PubSub.RedisZ.RedisPublisher do
 
     :poolboy.transaction(pool_name, fn worker_pid ->
       try do
-          case Redix.command(worker_pid, ["PUBLISH", topic, bin_msg], timeout: 600_000) do
+          case Redix.command(worker_pid, ["PUBLISH", topic, bin_msg]) do
             {:ok, _} ->
               :ok
 
