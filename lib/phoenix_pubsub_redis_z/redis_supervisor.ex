@@ -17,18 +17,17 @@ defmodule Phoenix.PubSub.RedisZ.RedisSupervisor do
       |> Enum.with_index()
       |> Enum.map(fn {redis_opts, shard} ->
         subscriber_name = RedisSubscriber.server_name(pubsub_name, shard)
-
+        publisher_name = RedisPublisher.pool_name(options[:adapter_name], shard)
         subscriber_options =
           options
           |> Keyword.put(:redis_opts, redis_opts)
           |> Keyword.put(:server_name, subscriber_name)
 
-        publisher_name = RedisPublisher.pool_name(options[:adapter_name], shard)
-
         publisher_pool_opts = [
           name: {:local, publisher_name},
           worker_module: Redix,
-          size: options[:publisher_pool_size]
+          size: options[:publisher_pool_size],
+          max_overflow: options[:publisher_max_overflow]
         ]
 
         shard_children = [
